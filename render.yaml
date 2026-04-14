@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sudoku-server
+    env: node
+    buildCommand: echo "No build step required"
+    startCommand: node execution/sudoku_server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 20.0.0
+      - key: SUDOKU_ALLOWED_ORIGIN
+        sync: false
+    disk:
+      name: sudoku-data
+      mountPath: /opt/render/project/src/HabitPlannerApp/server_data
+      sizeGB: 1

@@ -1,0 +1,11 @@
+{
+  "name": "sudoku-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node execution/sudoku_server.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -86,7 +86,7 @@ function readBody(request) {
         request.on("data", (chunk) => {
             raw += chunk;
             if (raw.length > 1_000_000) {
-                reject(new Error("РЎР»РёС€РєРѕРј Р±РѕР»СЊС€РѕР№ Р·Р°РїСЂРѕСЃ."));
+                reject(new Error("Слишком большой запрос."));
                 request.destroy();
             }
         });
@@ -98,7 +98,7 @@ function readBody(request) {
             try {
                 resolve(JSON.parse(raw));
             } catch {
-                reject(new Error("РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON."));
+                reject(new Error("Некорректный JSON."));
             }
         });
         request.on("error", reject);
@@ -163,7 +163,7 @@ function sanitizeStaticPath(urlPath) {
 
 function sendStaticFile(response, filePath) {
     if (!filePath || !existsSync(filePath)) {
-        sendJson(response, 404, { message: "Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ." });
+        sendJson(response, 404, { message: "Файл не найден." });
         return;
     }
 
@@ -194,15 +194,15 @@ async function handleApi(request, response, pathname) {
         const password = String(body.password || "");
 
         if (username.length < 3) {
-            sendJson(response, 400, { message: "РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 3 СЃРёРјРІРѕР»РѕРІ." });
+            sendJson(response, 400, { message: "Имя пользователя должно быть не короче 3 символов." });
             return;
         }
         if (password.length < 6) {
-            sendJson(response, 400, { message: "РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РЅРµ РєРѕСЂРѕС‡Рµ 6 СЃРёРјРІРѕР»РѕРІ." });
+            sendJson(response, 400, { message: "Пароль должен быть не короче 6 символов." });
             return;
         }
         if (statements.findUserByUsername.get(username)) {
-            sendJson(response, 409, { message: "РўР°РєРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СѓР¶Рµ Р·Р°РЅСЏС‚Рѕ." });
+            sendJson(response, 409, { message: "Такое имя пользователя уже занято." });
             return;
         }
 
@@ -223,7 +223,7 @@ async function handleApi(request, response, pathname) {
         const user = statements.findUserByUsername.get(username);
 
         if (!user || !verifyPassword(password, user.password_salt, user.password_hash)) {
-            sendJson(response, 401, { message: "РќРµРІРµСЂРЅРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР»Рё РїР°СЂРѕР»СЊ." });
+            sendJson(response, 401, { message: "Неверное имя пользователя или пароль." });
             return;
         }
 
@@ -235,7 +235,7 @@ async function handleApi(request, response, pathname) {
 
     const sessionData = getUserFromRequest(request);
     if (!sessionData) {
-        sendJson(response, 401, { message: "РўСЂРµР±СѓРµС‚СЃСЏ Р°РІС‚РѕСЂРёР·Р°С†РёСЏ." });
+        sendJson(response, 401, { message: "Требуется авторизация." });
         return;
     }
 
@@ -282,7 +282,7 @@ async function handleApi(request, response, pathname) {
         const records = normalizeRecords(JSON.parse(profile.records_json || "{}"));
 
         if (!records[difficulty] || !record) {
-            sendJson(response, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ СЂРµРєРѕСЂРґР°." });
+            sendJson(response, 400, { message: "Некорректные данные рекорда." });
             return;
         }
 
@@ -294,7 +294,7 @@ async function handleApi(request, response, pathname) {
         return;
     }
 
-    sendJson(response, 404, { message: "РњР°СЂС€СЂСѓС‚ РЅРµ РЅР°Р№РґРµРЅ." });
+    sendJson(response, 404, { message: "Маршрут не найден." });
 }
 
 const server = createServer(async (request, response) => {
@@ -315,7 +315,7 @@ const server = createServer(async (request, response) => {
 
         sendStaticFile(response, sanitizeStaticPath(url.pathname));
     } catch (error) {
-        sendJson(response, 500, { message: error instanceof Error ? error.message : "Р’РЅСѓС‚СЂРµРЅРЅСЏСЏ РѕС€РёР±РєР° СЃРµСЂРІРµСЂР°." });
+        sendJson(response, 500, { message: error instanceof Error ? error.message : "Внутренняя ошибка сервера." });
     }
 });
 
